@@ -1165,7 +1165,7 @@ namespace Robust.Client.Graphics.Clyde
             var lightMapColorFormat = _hasGLFloatFramebuffers
                 ? RenderTargetColorFormat.R11FG11FB10F
                 : RenderTargetColorFormat.Rgba8;
-            var lightMapSampleParameters = new TextureSampleParameters { Filter = true };
+            var lightMapSampleParameters = new TextureSampleParameters { Filter = SampleFilterMode.Bilinear };
 
             viewport.WallMaskRenderTarget = CreateRenderTarget(viewport.Size, RenderTargetColorFormat.R8,
                 name: $"{viewport.Name}-{nameof(viewport.WallMaskRenderTarget)}");
@@ -1238,7 +1238,7 @@ namespace Robust.Client.Graphics.Clyde
             _shadowRenderTarget = CreateRenderTarget((ShadowMapSize, _maxShadowcastingLights),
                 new RenderTargetFormatParameters(
                     _hasGLFloatFramebuffers ? RenderTargetColorFormat.RG32F : RenderTargetColorFormat.Rgba8, true),
-                new TextureSampleParameters { WrapMode = TextureWrapMode.Repeat, Filter = true },
+                new TextureSampleParameters { WrapMode = TextureWrapMode.Repeat, Filter = SampleFilterMode.Bilinear },
                 nameof(_shadowRenderTarget));
         }
 

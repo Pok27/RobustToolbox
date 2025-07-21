@@ -36,7 +36,7 @@ namespace Robust.Client.Graphics.Clyde
             var lightMapColorFormat = _hasGLFloatFramebuffers
                 ? RTCF.R11FG11FB10F
                 : RTCF.Rgba8;
-            var lightMapSampleParameters = new TextureSampleParameters { Filter = true };
+            var lightMapSampleParameters = new TextureSampleParameters { Filter = SampleFilterMode.Bilinear };
 
             return CreateRenderTarget(size,
                 new RenderTargetFormatParameters(lightMapColorFormat, hasDepthStencil: depthStencil),

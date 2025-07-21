@@ -205,23 +205,35 @@ namespace Robust.Client.Graphics.Clyde
         private void ApplySampleParameters(TextureSampleParameters? sampleParameters)
         {
             var actualParams = sampleParameters ?? TextureSampleParameters.Default;
-            if (actualParams.Filter)
+            switch (actualParams.Filter)
             {
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
-                    (int) TextureMinFilter.Linear);
-                CheckGlError();
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
-                    (int) TextureMagFilter.Linear);
-                CheckGlError();
-            }
-            else
-            {
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
-                    (int) TextureMinFilter.Nearest);
-                CheckGlError();
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
-                    (int) TextureMagFilter.Nearest);
-                CheckGlError();
+                case SampleFilterMode.Bilinear:
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
+                        (int) TextureMinFilter.Linear);
+                    CheckGlError();
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
+                        (int) TextureMagFilter.Linear);
+                    CheckGlError();
+                    break;
+
+                case SampleFilterMode.PointSampling:
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
+                        (int) TextureMinFilter.Nearest);
+                    CheckGlError();
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
+                        (int) TextureMagFilter.Nearest);
+                    CheckGlError();
+                    break;
+
+                case SampleFilterMode.Nearest:
+                default:
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
+                        (int) TextureMinFilter.Nearest);
+                    CheckGlError();
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
+                        (int) TextureMagFilter.Nearest);
+                    CheckGlError();
+                    break;
             }
 
             switch (actualParams.WrapMode)

@@ -37,7 +37,7 @@ namespace Robust.UnitTesting.Client.Graphics
         {
             var yaml = _getMapping(TestDataOne);
             var loaded = TextureLoadParameters.FromYaml(yaml);
-            Assert.That(loaded.SampleParameters.Filter, Is.EqualTo(true));
+            Assert.That(loaded.SampleParameters.Filter, Is.EqualTo(SampleFilterMode.Bilinear));
             Assert.That(loaded.SampleParameters.WrapMode, Is.EqualTo(TextureWrapMode.Repeat));
             Assert.That(loaded.Srgb, Is.EqualTo(false));
         }
@@ -47,7 +47,7 @@ namespace Robust.UnitTesting.Client.Graphics
         {
             var yaml = _getMapping(TestDataTwo);
             var loaded = TextureLoadParameters.FromYaml(yaml);
-            Assert.That(loaded.SampleParameters.Filter, Is.EqualTo(false));
+            Assert.That(loaded.SampleParameters.Filter, Is.EqualTo(SampleFilterMode.Nearest));
             Assert.That(loaded.SampleParameters.WrapMode, Is.EqualTo(TextureWrapMode.MirroredRepeat));
         }
 

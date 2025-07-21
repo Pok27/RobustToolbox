@@ -5,6 +5,13 @@ using YamlDotNet.RepresentationModel;
 
 namespace Robust.Shared.Graphics;
 
+public enum SampleFilterMode
+{
+    Nearest,
+    Bilinear,
+    PointSampling
+}
+
 /// <summary>
 ///     Sample flags for textures.
 ///     These are separate from <see cref="TextureLoadParameters"/>,
@@ -19,7 +26,7 @@ public struct TextureSampleParameters : IEquatable<TextureSampleParameters>
     /// <summary>
     ///     If true, use bi-linear texture filtering if the texture cannot be rendered 1:1
     /// </summary>
-    public bool Filter { get; set; }
+    public SampleFilterMode Filter { get; set; }
 
     /// <summary>
     ///     Controls how to wrap the texture if texture coordinates outside 0-1 are accessed.
@@ -29,11 +36,20 @@ public struct TextureSampleParameters : IEquatable<TextureSampleParameters>
     public static TextureSampleParameters FromYaml(YamlMappingNode node)
     {
         var wrap = TextureWrapMode.None;
-        var filter = false;
+        var filter = SampleFilterMode.Nearest;
 
         if (node.TryGetNode("filter", out var filterNode))
         {
-            filter = filterNode.AsBool();
+            if (filterNode is YamlScalarNode scalar)
+            {
+                var val = scalar.Value?.ToLowerInvariant();
+                filter = val switch
+                {
+                    "bilinear" => SampleFilterMode.Bilinear,
+                    "nearest" => SampleFilterMode.Nearest,
+                    "pointsampling" => SampleFilterMode.PointSampling,
+                };
+            }
         }
 
         if (node.TryGetNode("wrap", out var wrapNode))
@@ -59,7 +75,7 @@ public struct TextureSampleParameters : IEquatable<TextureSampleParameters>
 
     public static readonly TextureSampleParameters Default = new()
     {
-        Filter = false,
+        Filter = SampleFilterMode.Nearest,
         WrapMode = TextureWrapMode.None
     };
 
