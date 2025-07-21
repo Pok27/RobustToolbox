@@ -45,8 +45,8 @@ public struct TextureSampleParameters : IEquatable<TextureSampleParameters>
                 var val = scalar.Value?.ToLowerInvariant();
                 filter = val switch
                 {
-                    "bilinear" => SampleFilterMode.Bilinear,
-                    "nearest" => SampleFilterMode.Nearest,
+                    "false" or "nearest" => SampleFilterMode.Nearest,
+                    "true" or "bilinear" => SampleFilterMode.Bilinear,
                     "pointsampling" => SampleFilterMode.PointSampling,
                 };
             }

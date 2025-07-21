@@ -207,6 +207,16 @@ namespace Robust.Client.Graphics.Clyde
             var actualParams = sampleParameters ?? TextureSampleParameters.Default;
             switch (actualParams.Filter)
             {
+                case SampleFilterMode.Nearest:
+                default:
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
+                        (int) TextureMinFilter.Nearest);
+                    CheckGlError();
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
+                        (int) TextureMagFilter.Nearest);
+                    CheckGlError();
+                    break;
+
                 case SampleFilterMode.Bilinear:
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
                         (int) TextureMinFilter.Linear);
@@ -223,15 +233,12 @@ namespace Robust.Client.Graphics.Clyde
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
                         (int) TextureMagFilter.Nearest);
                     CheckGlError();
-                    break;
 
-                case SampleFilterMode.Nearest:
-                default:
-                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
-                        (int) TextureMinFilter.Nearest);
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel,
+                        0);
                     CheckGlError();
-                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
-                        (int) TextureMagFilter.Nearest);
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel,
+                        0);
                     CheckGlError();
                     break;
             }
