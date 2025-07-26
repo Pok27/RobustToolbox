@@ -1,5 +1,3 @@
-preset raw;
-
 void fragment()
 {
     highp vec2 uv = UV;
