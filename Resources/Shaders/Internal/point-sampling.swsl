@@ -1,46 +1,6 @@
 preset raw;
 
-uniform highp vec2 TEXTURE_PIXEL_SIZE;
-uniform highp vec2 SCREEN_PIXEL_SIZE;
-
 void fragment()
 {
-    highp vec2 uv = UV;
-    highp vec2 texSize = TEXTURE_PIXEL_SIZE;
-    highp vec2 screenSize = SCREEN_PIXEL_SIZE;
-    
-    // Calculate scale factors
-    highp vec2 scale = screenSize / texSize;
-    highp float scaleFactor = max(scale.x, scale.y);
-    
-    // Point sampling algorithm:
-    // - For downscaling (scale < 1): Use nearest neighbor for crisp pixels
-    // - For upscaling (scale > 1): Use weighted bilinear interpolation
-    // - For 1:1 scale: Use nearest neighbor
-    
-    if (scaleFactor < 0.95) {
-        // Downscaling - use nearest neighbor for crisp pixels
-        highp vec2 texCoord = floor(uv * texSize) / texSize;
-        COLOR = zTexture(texCoord);
-    } else if (scaleFactor > 1.05) {
-        // Upscaling - use weighted bilinear interpolation
-        highp vec2 texCoord = uv * texSize;
-        highp vec2 texCoordFloor = floor(texCoord);
-        highp vec2 texCoordFract = fract(texCoord);
-        
-        // Sample 4 nearest pixels
-        highp vec4 c00 = zTexture((texCoordFloor + vec2(0.0, 0.0)) / texSize);
-        highp vec4 c10 = zTexture((texCoordFloor + vec2(1.0, 0.0)) / texSize);
-        highp vec4 c01 = zTexture((texCoordFloor + vec2(0.0, 1.0)) / texSize);
-        highp vec4 c11 = zTexture((texCoordFloor + vec2(1.0, 1.0)) / texSize);
-        
-        // Bilinear interpolation with edge preservation
-        highp vec4 c0 = mix(c00, c10, texCoordFract.x);
-        highp vec4 c1 = mix(c01, c11, texCoordFract.x);
-        COLOR = mix(c0, c1, texCoordFract.y);
-    } else {
-        // 1:1 scale - use nearest neighbor
-        highp vec2 texCoord = floor(uv * texSize) / texSize;
-        COLOR = zTexture(texCoord);
-    }
+    COLOR = zTexture(UV);
 }
