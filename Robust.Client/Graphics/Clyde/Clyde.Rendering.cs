@@ -9,6 +9,7 @@ using Robust.Client.GameObjects;
 using Robust.Client.Utility;
 using Robust.Shared.Graphics;
 using Robust.Shared.Maths;
+using Robust.Shared.Graphics.TextureSampleParameters;
 using Robust.Shared.Utility;
 using TKStencilOp = OpenToolkit.Graphics.OpenGL4.StencilOp;
 using Vector3 = Robust.Shared.Maths.Vector3;
