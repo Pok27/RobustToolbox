@@ -199,7 +199,7 @@ namespace Robust.Client.Graphics.Clyde
 
             var pressureEst = EstPixelSize(pif) * width * height;
 
-            return GenTexture(texture, (width, height), isActuallySrgb, name, texPixType, pressureEst);
+            return GenTexture(texture, (width, height), isActuallySrgb, name, texPixType, loadParams.SampleParameters, pressureEst);
         }
 
         private void ApplySampleParameters(TextureSampleParameters? sampleParameters)
@@ -227,12 +227,13 @@ namespace Robust.Client.Graphics.Clyde
                     break;
 
                 case SampleFilterMode.PointSampling:
-                    // PointSampling: Linear magnification for smoother upscaling, Nearest minification for crisp downscaling
+                    // PointSampling: Use custom shader-based algorithm instead of OpenGL filtering
+                    // Set to nearest neighbor as base, but actual filtering is done in shader
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
                         (int) TextureMinFilter.Nearest);
                     CheckGlError();
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
-                        (int) TextureMagFilter.Linear);
+                        (int) TextureMagFilter.Nearest);
                     CheckGlError();
 
                     // Disable mipmaps for point sampling to ensure consistent behavior
@@ -307,6 +308,7 @@ namespace Robust.Client.Graphics.Clyde
             bool srgb,
             string? name,
             TexturePixelType pixType,
+            TextureSampleParameters sampleParameters,
             long memoryPressure = 0)
         {
             if (name != null)
@@ -327,6 +329,7 @@ namespace Robust.Client.Graphics.Clyde
                 Name = name,
                 MemoryPressure = memoryPressure,
                 TexturePixelType = pixType,
+                SampleParameters = sampleParameters,
                 TextureInstance = new WeakReference<ClydeTexture>(instance)
             };
 
@@ -601,6 +604,7 @@ namespace Robust.Client.Graphics.Clyde
             public string? Name;
             public long MemoryPressure;
             public TexturePixelType TexturePixelType;
+            public TextureSampleParameters SampleParameters;
 
             public Vector2i Size => (Width, Height);
             public required WeakReference<ClydeTexture> TextureInstance;

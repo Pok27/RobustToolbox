@@ -19,6 +19,7 @@ namespace Robust.Client.Graphics.Clyde
     {
         [ViewVariables]
         private ClydeShaderInstance _defaultShader = default!;
+        private ClydeShaderInstance _pointSamplingShader = default!;
 
         private string _shaderLibrary = default!;
 
@@ -132,17 +133,20 @@ namespace Robust.Client.Graphics.Clyde
 
         public ShaderInstance InstanceShader(ShaderSourceResource source, bool? lighting = null, ShaderBlendMode? mode = null)
         {
-            var newHandle = AllocRid();
-            var loaded = new LoadedShaderInstance
+            var loaded = _loadedShaders[source.ClydeHandle];
+            var instance = new LoadedShaderInstance
             {
                 ShaderHandle = source.ClydeHandle,
                 HasLighting = lighting ?? source.ParsedShader.LightMode != ShaderLightMode.Unshaded,
                 BlendMode = mode ?? source.ParsedShader.BlendMode
             };
-            var instance = new ClydeShaderInstance(newHandle, this);
+            var newHandle = AllocRid();
+            var shaderInstance = new ClydeShaderInstance(newHandle, this);
             _shaderInstances.Add(newHandle, loaded);
-            return instance;
+            return shaderInstance;
         }
+
+
 
         private void LoadStockShaders()
         {
@@ -159,8 +163,11 @@ namespace Robust.Client.Graphics.Clyde
 
             var defaultLoadedShader = _resourceCache
                 .GetResource<ShaderSourceResource>("/Shaders/Internal/default-sprite.swsl");
+            var pointSamplingLoadedShader = _resourceCache
+                .GetResource<ShaderSourceResource>("/Shaders/Internal/point-sampling.swsl");
 
             _defaultShader = (ClydeShaderInstance) InstanceShader(defaultLoadedShader);
+            _pointSamplingShader = (ClydeShaderInstance) InstanceShader(pointSamplingLoadedShader);
 
             _queuedShaderInstance = _defaultShader;
         }

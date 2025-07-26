@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\MSBuild\Robust.Engine.props" />
 
   <PropertyGroup>
     <AssemblyName>SpaceWizards.Lidgren.Network</AssemblyName>
@@ -12,7 +13,7 @@
     <SkipRobustAnalyzer>true</SkipRobustAnalyzer>
 
     <Nullable>enable</Nullable>
-    <LangVersion>13.0</LangVersion>
+    <LangVersion>12.0</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

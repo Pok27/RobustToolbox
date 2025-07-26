@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -163,7 +163,7 @@ namespace Robust.Client.Graphics.Clyde
                 CheckGlError();
 
                 // Check on original format is NOT a bug, this is so srgb emulation works
-                textureObject = GenTexture(texture, size, format.ColorFormat == RTCF.Rgba8Srgb, name == null ? null : $"{name}-color", TexturePixelType.RenderTarget);
+                textureObject = GenTexture(texture, size, format.ColorFormat == RTCF.Rgba8Srgb, name == null ? null : $"{name}-color", TexturePixelType.RenderTarget, sampleParameters ?? TextureSampleParameters.Default);
             }
 
             // Depth/stencil buffers.

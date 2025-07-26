@@ -81,6 +81,7 @@ namespace Robust.Client.Graphics.Clyde
         private ClydeHandle _queuedShader => _queuedShaderInstance.Handle;
 
         private ClydeShaderInstance _queuedShaderInstance = default!;
+        private ClydeShaderInstance _pointSamplingShader = default!;
 
         // Current projection & view matrices that are being used ot render.
         // This gets updated to keep track during (queue) and (misc), but not during (submit).
@@ -798,13 +799,16 @@ namespace Robust.Client.Graphics.Clyde
         private void EnsureBatchState(ClydeHandle textureId, bool indexed,
             BatchPrimitiveType primitiveType, ClydeHandle shaderInstance)
         {
+            // Get the appropriate shader for the texture based on its sampling parameters
+            var actualShaderInstance = GetShaderForTexture(textureId).Handle;
+            
             if (_batchMetaData.HasValue)
             {
                 var metaData = _batchMetaData.Value;
                 if (metaData.TextureId == textureId &&
                     indexed == metaData.Indexed &&
                     metaData.PrimitiveType == primitiveType &&
-                    metaData.ShaderInstance == shaderInstance)
+                    metaData.ShaderInstance == actualShaderInstance)
                 {
                     // Data matches, don't have to do anything.
                     return;
@@ -816,7 +820,7 @@ namespace Robust.Client.Graphics.Clyde
 
             // ... and start another.
             _batchMetaData = new BatchMetaData(textureId, indexed, primitiveType,
-                indexed ? BatchIndexIndex : BatchVertexIndex, shaderInstance);
+                indexed ? BatchIndexIndex : BatchVertexIndex, actualShaderInstance);
 
             /*
             if (textureId != default)
@@ -896,6 +900,22 @@ namespace Robust.Client.Graphics.Clyde
             FinishBatch();
 
             _batchMetaData = null;
+        }
+
+        /// <summary>
+        /// Gets the appropriate shader instance based on texture sampling parameters.
+        /// </summary>
+        private ClydeShaderInstance GetShaderForTexture(ClydeHandle textureHandle)
+        {
+            if (_loadedTextures.TryGetValue(textureHandle, out var loadedTexture))
+            {
+                if (loadedTexture.SampleParameters.Filter == SampleFilterMode.PointSampling)
+                {
+                    return _pointSamplingShader;
+                }
+            }
+            
+            return _defaultShader;
         }
 
         private FullStoredRendererState PushRenderStateFull()
