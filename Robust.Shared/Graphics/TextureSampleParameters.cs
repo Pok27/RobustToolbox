@@ -7,8 +7,22 @@ namespace Robust.Shared.Graphics;
 
 public enum SampleFilterMode
 {
+    /// <summary>
+    /// Uses nearest neighbor filtering for both magnification and minification.
+    /// Provides crisp, pixelated appearance at all scales.
+    /// </summary>
     Nearest,
+    
+    /// <summary>
+    /// Uses linear filtering for both magnification and minification.
+    /// Provides smooth, interpolated appearance at all scales.
+    /// </summary>
     Bilinear,
+    
+    /// <summary>
+    /// Uses linear filtering for magnification (smooth upscaling) and nearest neighbor for minification (crisp downscaling).
+    /// Provides a hybrid approach that's smooth when enlarging but sharp when reducing.
+    /// </summary>
     PointSampling
 }
 

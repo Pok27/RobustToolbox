@@ -227,13 +227,15 @@ namespace Robust.Client.Graphics.Clyde
                     break;
 
                 case SampleFilterMode.PointSampling:
+                    // PointSampling: Linear magnification for smoother upscaling, Nearest minification for crisp downscaling
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
                         (int) TextureMinFilter.Nearest);
                     CheckGlError();
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
-                        (int) TextureMagFilter.Nearest);
+                        (int) TextureMagFilter.Linear);
                     CheckGlError();
 
+                    // Disable mipmaps for point sampling to ensure consistent behavior
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel,
                         0);
                     CheckGlError();
