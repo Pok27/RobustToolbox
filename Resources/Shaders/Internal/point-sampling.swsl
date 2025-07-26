@@ -6,7 +6,7 @@ uniform vec2 SCREEN_PIXEL_SIZE;
 in vec2 UV;
 out vec4 COLOR;
 
-void main() {
+void fragment() {
     vec2 uv = UV;
     vec2 texSize = TEXTURE_PIXEL_SIZE;
     vec2 screenSize = SCREEN_PIXEL_SIZE;
@@ -23,7 +23,7 @@ void main() {
     if (scaleFactor < 0.95) {
         // Downscaling - use nearest neighbor for crisp pixels
         vec2 texCoord = floor(uv * texSize) / texSize;
-        COLOR = texture(TEXTURE, texCoord);
+        COLOR = zTexture(texCoord);
     } else if (scaleFactor > 1.05) {
         // Upscaling - use weighted bilinear interpolation
         vec2 texCoord = uv * texSize;
@@ -31,10 +31,10 @@ void main() {
         vec2 texCoordFract = fract(texCoord);
         
         // Sample 4 nearest pixels
-        vec4 c00 = texture(TEXTURE, (texCoordFloor + vec2(0.0, 0.0)) / texSize);
-        vec4 c10 = texture(TEXTURE, (texCoordFloor + vec2(1.0, 0.0)) / texSize);
-        vec4 c01 = texture(TEXTURE, (texCoordFloor + vec2(0.0, 1.0)) / texSize);
-        vec4 c11 = texture(TEXTURE, (texCoordFloor + vec2(1.0, 1.0)) / texSize);
+        vec4 c00 = zTexture((texCoordFloor + vec2(0.0, 0.0)) / texSize);
+        vec4 c10 = zTexture((texCoordFloor + vec2(1.0, 0.0)) / texSize);
+        vec4 c01 = zTexture((texCoordFloor + vec2(0.0, 1.0)) / texSize);
+        vec4 c11 = zTexture((texCoordFloor + vec2(1.0, 1.0)) / texSize);
         
         // Bilinear interpolation with edge preservation
         vec4 c0 = mix(c00, c10, texCoordFract.x);
@@ -43,6 +43,6 @@ void main() {
     } else {
         // 1:1 scale - use nearest neighbor
         vec2 texCoord = floor(uv * texSize) / texSize;
-        COLOR = texture(TEXTURE, texCoord);
+        COLOR = zTexture(texCoord);
     }
 }
