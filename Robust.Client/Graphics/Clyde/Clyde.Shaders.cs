@@ -142,7 +142,7 @@ namespace Robust.Client.Graphics.Clyde
             };
             var newHandle = AllocRid();
             var shaderInstance = new ClydeShaderInstance(newHandle, this);
-            _shaderInstances.Add(newHandle, loaded);
+            _shaderInstances.Add(newHandle, instance);
             return shaderInstance;
         }
 
