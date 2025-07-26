@@ -2,5 +2,40 @@ preset raw;
 
 void fragment()
 {
-    COLOR = zTexture(UV);
+    highp vec2 uv = UV;
+    highp vec2 texSize = TEXTURE_PIXEL_SIZE;
+    
+    // Определяем масштаб на основе размера текстуры
+    // TEXTURE_PIXEL_SIZE = 1.0 / texture_size, поэтому:
+    // - если TEXTURE_PIXEL_SIZE.x > 1.0, то текстура уменьшается (scale < 1.0)
+    // - если TEXTURE_PIXEL_SIZE.x < 1.0, то текстура увеличивается (scale > 1.0)
+    highp float scaleX = 1.0 / texSize.x;
+    highp float scaleY = 1.0 / texSize.y;
+    highp float scaleFactor = max(scaleX, scaleY);
+    
+    if (scaleFactor < 0.95) {
+        // Уменьшение: используем nearest neighbor для четких пикселей
+        highp vec2 texCoord = floor(uv * texSize) / texSize;
+        COLOR = zTexture(texCoord);
+    } else if (scaleFactor > 1.05) {
+        // Увеличение: используем взвешенную билинейную интерполяцию
+        highp vec2 texCoord = uv * texSize;
+        highp vec2 texCoordFloor = floor(texCoord);
+        highp vec2 texCoordFract = fract(texCoord);
+        
+        // Получаем 4 соседних пикселя
+        highp vec4 c00 = zTexture((texCoordFloor + vec2(0.0, 0.0)) / texSize);
+        highp vec4 c10 = zTexture((texCoordFloor + vec2(1.0, 0.0)) / texSize);
+        highp vec4 c01 = zTexture((texCoordFloor + vec2(0.0, 1.0)) / texSize);
+        highp vec4 c11 = zTexture((texCoordFloor + vec2(1.0, 1.0)) / texSize);
+        
+        // Билинейная интерполяция
+        highp vec4 c0 = mix(c00, c10, texCoordFract.x);
+        highp vec4 c1 = mix(c01, c11, texCoordFract.x);
+        COLOR = mix(c0, c1, texCoordFract.y);
+    } else {
+        // Масштаб 1:1: используем nearest neighbor
+        highp vec2 texCoord = floor(uv * texSize) / texSize;
+        COLOR = zTexture(texCoord);
+    }
 }

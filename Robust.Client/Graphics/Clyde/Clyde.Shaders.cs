@@ -163,9 +163,11 @@ namespace Robust.Client.Graphics.Clyde
 
             var defaultLoadedShader = _resourceCache
                 .GetResource<ShaderSourceResource>("/Shaders/Internal/default-sprite.swsl");
+            var pointSamplingLoadedShader = _resourceCache
+                .GetResource<ShaderSourceResource>("/Shaders/Internal/point-sampling.swsl");
 
             _defaultShader = (ClydeShaderInstance) InstanceShader(defaultLoadedShader);
-            _pointSamplingShader = _defaultShader; // Временно используем default shader
+            _pointSamplingShader = (ClydeShaderInstance) InstanceShader(pointSamplingLoadedShader);
 
             _queuedShaderInstance = _defaultShader;
         }
