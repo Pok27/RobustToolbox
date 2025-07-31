@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Maths;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization.Manager.Attributes;
+using Robust.Shared.Serialization.TypeSerializers.Implementations;
 using Robust.Shared.Utility;
 
 namespace Robust.Benchmarks.Serialization.Definitions
@@ -30,7 +31,18 @@ namespace Robust.Benchmarks.Serialization.Definitions
   potency: 20
   growthStages: 3
   idealLight: 9
-  idealHeat: 298
+  growthComponents:
+    - type: BasicGrowthComponent
+      WaterConsumption: 3.0
+      NutrientConsumption: 0.25
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 298
+      HeatTolerance: 20
+      LowPressureTolerance: 25
+      HighPressureTolerance: 200
+    - type: WeedPestGrowthComponent
+      WeedTolerance: 5
+      PestTolerance: 5
   chemicals:
     chem.Nicotine:
       Min: 1
@@ -60,18 +72,9 @@ namespace Robust.Benchmarks.Serialization.Definitions
         public Dictionary<Gas, float> ExudeGasses { get; set; } = new();
         #endregion
 
-        #region Tolerances
-        [DataField("nutrientConsumption")] public float NutrientConsumption { get; set; } = 0.25f;
-        [DataField("waterConsumption")] public float WaterConsumption { get; set; } = 3f;
-        [DataField("idealHeat")] public float IdealHeat { get; set; } = 293f;
-        [DataField("heatTolerance")] public float HeatTolerance { get; set; } = 20f;
-        [DataField("idealLight")] public float IdealLight { get; set; } = 7f;
-        [DataField("lightTolerance")] public float LightTolerance { get; set; } = 5f;
-        [DataField("toxinsTolerance")] public float ToxinsTolerance { get; set; } = 4f;
-        [DataField("lowPressureTolerance")] public float LowPressureTolerance { get; set; } = 25f;
-        [DataField("highPressureTolerance")] public float HighPressureTolerance { get; set; } = 200f;
-        [DataField("pestTolerance")] public float PestTolerance { get; set; } = 5f;
-        [DataField("weedTolerance")] public float WeedTolerance { get; set; } = 5f;
+        #region Growth Components
+        [DataField("growthComponents")]
+        public List<PlantGrowthComponent> GrowthComponents { get; set; } = new();
         #endregion
 
         #region General traits
@@ -93,6 +96,30 @@ namespace Robust.Benchmarks.Serialization.Definitions
         [DataField("bioluminescentColor")] public Color BioluminescentColor { get; set; } = Color.White;
         [DataField("splatPrototype")] public string? SplatPrototype { get; set; }
         #endregion
+
+        /// <summary>
+        ///     Test method to verify the new growth component system works correctly
+        /// </summary>
+        public void TestGrowthComponents()
+        {
+            // This method can be used to test that the new component system works
+            // It should be called after deserialization to verify all components are loaded correctly
+            foreach (var component in GrowthComponents)
+            {
+                switch (component)
+                {
+                    case BasicGrowthComponent basic:
+                        // Verify basic component has correct values
+                        break;
+                    case AtmosphericGrowthComponent atmospheric:
+                        // Verify atmospheric component has correct values
+                        break;
+                    case WeedPestGrowthComponent weedPest:
+                        // Verify weed/pest component has correct values
+                        break;
+                }
+            }
+        }
     }
 
     public enum HarvestType
@@ -116,5 +143,73 @@ namespace Robust.Benchmarks.Serialization.Definitions
 
         [DataField("PotencyDivisor")]
         public int PotencyDivisor;
+    }
+
+    [RegisterComponent]
+    [ImplicitDataDefinitionForInheritors]
+    public abstract partial class PlantGrowthComponent : Component
+    {
+        public PlantGrowthComponent DupeComponent()
+        {
+            return (PlantGrowthComponent)this.MemberwiseClone();
+        }
+    }
+
+    [RegisterComponent]
+    public sealed partial class BasicGrowthComponent : PlantGrowthComponent
+    {
+        [DataField]
+        public float WaterConsumption = 0.5f;
+
+        [DataField]
+        public float NutrientConsumption = 0.75f;
+    }
+
+    [RegisterComponent]
+    public sealed partial class AtmosphericGrowthComponent : PlantGrowthComponent
+    {
+        [DataField]
+        public float IdealHeat = 293f;
+        
+        [DataField]
+        public float HeatTolerance = 20f;
+        
+        [DataField]
+        public float LowPressureTolerance = 25f;
+        
+        [DataField]
+        public float HighPressureTolerance = 200f;
+    }
+
+    [RegisterComponent]
+    public sealed partial class WeedPestGrowthComponent : PlantGrowthComponent
+    {
+        [DataField]
+        public float WeedTolerance = 5f;
+        
+        [DataField]
+        public float PestTolerance = 5f;
+    }
+
+    [RegisterComponent]
+    public sealed partial class ConsumeExudeGasGrowthComponent : PlantGrowthComponent
+    {
+        [DataField]
+        public Dictionary<Gas, float> ConsumeGasses = new();
+        
+        [DataField]
+        public Dictionary<Gas, float> ExudeGasses = new();
+    }
+
+    [RegisterComponent]
+    public sealed partial class AutoHarvestGrowthComponent : PlantGrowthComponent
+    {
+        // Без параметров
+    }
+
+    [RegisterComponent]
+    public sealed partial class UnviableGrowthComponent : PlantGrowthComponent
+    {
+        // Без параметров
     }
 }

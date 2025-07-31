@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
 using Robust.Benchmarks.Serialization.Definitions;
@@ -86,17 +86,8 @@ namespace Robust.Benchmarks.Serialization.Copy
             copy.ConsumeGasses = Seed.ConsumeGasses.ToDictionary(p => p.Key, p => p.Value);
             copy.ExudeGasses = Seed.ExudeGasses.ToDictionary(p => p.Key, p => p.Value);
 
-            copy.NutrientConsumption = Seed.NutrientConsumption;
-            copy.WaterConsumption = Seed.WaterConsumption;
-            copy.IdealHeat = Seed.IdealHeat;
-            copy.HeatTolerance = Seed.HeatTolerance;
-            copy.IdealLight = Seed.IdealLight;
-            copy.LightTolerance = Seed.LightTolerance;
-            copy.ToxinsTolerance = Seed.ToxinsTolerance;
-            copy.LowPressureTolerance = Seed.LowPressureTolerance;
-            copy.HighPressureTolerance = Seed.HighPressureTolerance;
-            copy.PestTolerance = Seed.PestTolerance;
-            copy.WeedTolerance = Seed.WeedTolerance;
+            // Копируем компоненты роста
+            copy.GrowthComponents = Seed.GrowthComponents.Select(component => component.DupeComponent()).ToList();
 
             copy.Endurance = Seed.Endurance;
             copy.Yield = Seed.Yield;

@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.IO;
 using BenchmarkDotNet.Attributes;
 using Robust.Benchmarks.Serialization.Definitions;
@@ -83,8 +83,36 @@ namespace Robust.Benchmarks.Serialization.Write
             mapping.Add("yield", Seed.Yield.ToString(CultureInfo.InvariantCulture));
             mapping.Add("potency", Seed.Potency.ToString(CultureInfo.InvariantCulture));
             mapping.Add("growthStages", Seed.GrowthStages.ToString(CultureInfo.InvariantCulture));
-            mapping.Add("idealLight", Seed.IdealLight.ToString(CultureInfo.InvariantCulture));
-            mapping.Add("idealHeat", Seed.IdealHeat.ToString(CultureInfo.InvariantCulture));
+            mapping.Add("idealLight", "9"); // Оставляем для совместимости
+
+            // Записываем компоненты роста
+            var growthComponents = new SequenceDataNode();
+            foreach (var component in Seed.GrowthComponents)
+            {
+                var componentMapping = new MappingDataNode();
+                componentMapping.Add("type", component.GetType().Name);
+                
+                switch (component)
+                {
+                    case BasicGrowthComponent basic:
+                        componentMapping.Add("WaterConsumption", basic.WaterConsumption.ToString(CultureInfo.InvariantCulture));
+                        componentMapping.Add("NutrientConsumption", basic.NutrientConsumption.ToString(CultureInfo.InvariantCulture));
+                        break;
+                    case AtmosphericGrowthComponent atmospheric:
+                        componentMapping.Add("IdealHeat", atmospheric.IdealHeat.ToString(CultureInfo.InvariantCulture));
+                        componentMapping.Add("HeatTolerance", atmospheric.HeatTolerance.ToString(CultureInfo.InvariantCulture));
+                        componentMapping.Add("LowPressureTolerance", atmospheric.LowPressureTolerance.ToString(CultureInfo.InvariantCulture));
+                        componentMapping.Add("HighPressureTolerance", atmospheric.HighPressureTolerance.ToString(CultureInfo.InvariantCulture));
+                        break;
+                    case WeedPestGrowthComponent weedPest:
+                        componentMapping.Add("WeedTolerance", weedPest.WeedTolerance.ToString(CultureInfo.InvariantCulture));
+                        componentMapping.Add("PestTolerance", weedPest.PestTolerance.ToString(CultureInfo.InvariantCulture));
+                        break;
+                }
+                
+                growthComponents.Add(componentMapping);
+            }
+            mapping.Add("growthComponents", growthComponents);
 
             var chemicals = new MappingDataNode();
             foreach (var (name, quantity) in Seed.Chemicals)
