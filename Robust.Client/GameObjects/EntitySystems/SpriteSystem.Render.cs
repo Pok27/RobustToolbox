@@ -15,28 +15,14 @@ namespace Robust.Client.GameObjects;
 // This partial class contains code related to actually rendering sprites.
 public sealed partial class SpriteSystem
 {
-    public void RenderSprite(
-        Entity<SpriteComponent> sprite,
-        DrawingHandleWorld drawingHandle,
-        Angle eyeRotation,
-        Angle worldRotation,
-        Vector2 worldPosition)
-    {
-        RenderSprite(sprite,
-            drawingHandle,
-            eyeRotation,
-            worldRotation,
-            worldPosition,
-            sprite.Comp.EnableDirectionOverride ? sprite.Comp.DirectionOverride : null);
-    }
-
-    public void RenderSprite(
+    private void RenderSpriteCore(
         Entity<SpriteComponent> sprite,
         DrawingHandleWorld drawingHandle,
         Angle eyeRotation,
         Angle worldRotation,
         Vector2 worldPosition,
-        Direction? overrideDirection)
+        Direction? overrideDirection,
+        bool normal)
     {
         // TODO SPRITE RENDERING
         // Add fast path for simple sprites.
@@ -67,7 +53,7 @@ public sealed partial class SpriteSystem
         {
             foreach (var layer in sprite.Comp.Layers)
             {
-                RenderLayer(layer, drawingHandle, ref spriteMatrix, angle, overrideDirection);
+                RenderLayer(layer, drawingHandle, ref spriteMatrix, angle, overrideDirection, normal, (float) eyeRotation.Theta);
             }
             return;
         }
@@ -76,11 +62,11 @@ public sealed partial class SpriteSystem
         entityMatrix = Matrix3Helpers.CreateTransform(worldPosition, worldRotation);
         var transformDefault = Matrix3x2.Multiply(sprite.Comp.LocalMatrix, entityMatrix);
 
-        //Snap to cardinals
+        // Snap to cardinals
         entityMatrix = Matrix3Helpers.CreateTransform(worldPosition, worldRotation - angle.RoundToCardinalAngle());
         var transformSnap = Matrix3x2.Multiply(sprite.Comp.LocalMatrix, entityMatrix);
 
-        //No rotation
+        // No rotation
         entityMatrix = Matrix3Helpers.CreateTransform(worldPosition, -eyeRotation);
         var transformNoRot = Matrix3x2.Multiply(sprite.Comp.LocalMatrix, entityMatrix);
 
@@ -89,16 +75,16 @@ public sealed partial class SpriteSystem
             switch (layer.RenderingStrategy)
             {
                 case LayerRenderingStrategy.UseSpriteStrategy:
-                    RenderLayer(layer, drawingHandle, ref spriteMatrix, angle, overrideDirection);
+                    RenderLayer(layer, drawingHandle, ref spriteMatrix, angle, overrideDirection, normal, (float) eyeRotation.Theta);
                     break;
                 case LayerRenderingStrategy.Default:
-                    RenderLayer(layer, drawingHandle, ref transformDefault, angle, overrideDirection);
+                    RenderLayer(layer, drawingHandle, ref transformDefault, angle, overrideDirection, normal, (float) eyeRotation.Theta);
                     break;
                 case LayerRenderingStrategy.NoRotation:
-                    RenderLayer(layer, drawingHandle, ref transformNoRot, angle, overrideDirection);
+                    RenderLayer(layer, drawingHandle, ref transformNoRot, angle, overrideDirection, normal, (float) eyeRotation.Theta);
                     break;
                 case LayerRenderingStrategy.SnapToCardinals:
-                    RenderLayer(layer, drawingHandle, ref transformSnap, angle, overrideDirection);
+                    RenderLayer(layer, drawingHandle, ref transformSnap, angle, overrideDirection, normal, (float) eyeRotation.Theta);
                     break;
                 default:
                     Log.Error($"Tried to render a layer with unknown rendering stragegy: {layer.RenderingStrategy}");
@@ -106,11 +92,61 @@ public sealed partial class SpriteSystem
             }
         }
     }
+    public void RenderSprite(
+        Entity<SpriteComponent> sprite,
+        DrawingHandleWorld drawingHandle,
+        Angle eyeRotation,
+        Angle worldRotation,
+        Vector2 worldPosition)
+    {
+        RenderSpriteCore(sprite,
+            drawingHandle,
+            eyeRotation,
+            worldRotation,
+            worldPosition,
+            sprite.Comp.EnableDirectionOverride ? sprite.Comp.DirectionOverride : null,
+            false);
+    }
+
+    public void RenderSprite(
+        Entity<SpriteComponent> sprite,
+        DrawingHandleWorld drawingHandle,
+        Angle eyeRotation,
+        Angle worldRotation,
+        Vector2 worldPosition,
+        Direction? overrideDirection)
+    {
+        RenderSpriteCore(sprite,
+            drawingHandle,
+            eyeRotation,
+            worldRotation,
+            worldPosition,
+            overrideDirection,
+            false);
+    }
+
+    public void RenderSprite(
+        Entity<SpriteComponent> sprite,
+        DrawingHandleWorld drawingHandle,
+        Angle eyeRotation,
+        Angle worldRotation,
+        Vector2 worldPosition,
+        Direction? overrideDirection,
+        bool normal)
+    {
+        RenderSpriteCore(sprite,
+            drawingHandle,
+            eyeRotation,
+            worldRotation,
+            worldPosition,
+            overrideDirection,
+            normal);
+    }
 
     /// <summary>
     /// Render a layer. This assumes that the input angle is between 0 and 2pi.
     /// </summary>
-    private void RenderLayer(Layer layer, DrawingHandleWorld drawingHandle, ref Matrix3x2 spriteMatrix, Angle angle, Direction? overrideDirection)
+    private void RenderLayer(Layer layer, DrawingHandleWorld drawingHandle, ref Matrix3x2 spriteMatrix, Angle angle, Direction? overrideDirection, bool normal = false, float eyeRotation = 0f)
     {
         if (!layer.Visible || layer.Blank)
             return;
@@ -134,6 +170,8 @@ public sealed partial class SpriteSystem
         // I.e., separate Layer -> RsiLayer, TextureLayer, LayerCollection, SpriteLayer, and ShaderLayer
         if (layer.CopyToShaderParameters != null)
         {
+            if (normal)
+                return;
             HandleShaderLayer(layer, texture, layer.CopyToShaderParameters);
             return;
         }
@@ -142,14 +180,25 @@ public sealed partial class SpriteSystem
         var transformMatrix = Matrix3x2.Multiply(layerMatrix, spriteMatrix);
         drawingHandle.SetTransform(in transformMatrix);
 
-        if (layer.Shader != null)
+        if (normal)
+        {
+            if (layer.NormalShader is { } normalShader)
+            {
+                var shader = normalShader.Mutable ? normalShader : normalShader.Duplicate();
+                drawingHandle.UseShader(shader);
+                shader.SetParameter("rotation", eyeRotation + (float) drawingHandle.GetTransform().Rotation());
+            }
+        }
+        else if (layer.Shader != null)
+        {
             drawingHandle.UseShader(layer.Shader);
+        }
 
-        var layerColor = layer.Owner.Comp.color * layer.Color;
+        var layerColor = normal ? Color.White : layer.Owner.Comp.color * layer.Color;
         var textureSize = texture.Size / (float) EyeManager.PixelsPerMeter;
         var quad = Box2.FromDimensions(textureSize / -2, textureSize);
 
-        if (layer.UnShaded)
+        if (!normal && layer.UnShaded)
         {
             DebugTools.AssertNull(layer.Shader);
             DebugTools.Assert(layerColor is {R: >= 0, G: >= 0, B: >= 0, A: >= 0}, "Default shader should not be used with negative color modulation.");
@@ -160,9 +209,9 @@ public sealed partial class SpriteSystem
             layerColor = new(new SysVec4(-1) - layerColor.RGBA);
         }
 
-        drawingHandle.DrawTextureRectRegion(texture, quad, layerColor);
+        drawingHandle.DrawTextureRectRegion(texture, quad, layerColor, normal: normal);
 
-        if (layer.Shader != null)
+        if (layer.Shader != null || normal)
             drawingHandle.UseShader(null);
     }
 
